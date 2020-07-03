@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_inventory_evaluation_form" model="ir.ui.view">
+        <field name="name">view.stock.inventory.evaluation.form</field>
+        <field name="model">stock.inventory.evaluation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                    <button name="action_start" states="draft" type="object" string="Start" class="oe_highlight"/>
+                    <button name="action_cancel" states="draft" type="object" string="Cancel"/>
+                    <button name="action_done" states="draft" string="Done" type="object"/>
+                    <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Annual inventory"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="location_id" domain="[('usage','not in', ['supplier','production'])]"
+                                   groups="stock.group_stock_multi_locations"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="line_history" string="Line History">
+                            <field name="line_history_ids">
+                                <tree string="Line History" editable="bottom">
+                                    <field name="inventory_evaluation_id" invisible="1"/>
+                                    <field name="name"/>
+                                    <field name="date_evaluation"/>
+                                    <field name="product_id"/>
+                                    <field name="product_qty"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="location_id"/>
+                                    <field name="fifo_cost" invisible="1"/>
+                                    <field name="fifo_purchase_cost" invisible="1"/>
+                                    <field name="lifo_cost" invisible="1"/>
+                                    <field name="lifo_purchase_cost" invisible="1"/>
+                                    <field name="last_purchase_cost"/>
+                                    <field name="average_cost"/>
+                                    <field name="average_purchase_cost"/>
+                                    <field name="standard_cost"/>
+                                    <field name="list_price"/>
+                                    <field name="real_value"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="line" string="Line">
+                            <field name="line_ids">
+                                <tree string="Inventory Details" editable="bottom" decoration-info="product_qty != theoretical_qty"
+                                      decoration-danger="theoretical_qty &lt; 0">
+                                    <field name="product_tracking" invisible="1"/>
+                                    <field name="product_id" domain="[('type','=','product')]" force_save="1"/>
+                                    <field name="product_uom_id" string="UoM" groups="uom.group_uom"
+                                           domain="[('category_id', '=', product_uom_category_id)]"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="location_id" domain="[('id', 'child_of', parent.location_id)]"
+                                           groups="stock.group_stock_multi_locations"/>
+                                    <field name="prod_lot_id" domain="[('product_id', '=', product_id)]"
+                                           attrs="{'readonly': [('product_tracking', '=', 'none')]}" context="{'default_product_id': product_id}"
+                                           groups="stock.group_production_lot"/>
+                                    <field name="theoretical_qty" readonly="1"/>
+                                    <field name="product_qty" string="Real Quantity"/>
+                                    <field name="state" invisible="True"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <act_window id="action_stock_inventory_evaluation" name="Stock Inventory Evaluation"
+                res_model="stock.inventory.evaluation" view_mode="tree,form"/>
+
+    <menuitem id="stock_inventory_evaluation_menu" name="Stock Inventory Evaluation"
+              parent="stock.menu_stock_warehouse_mgmt" action="action_stock_inventory_evaluation"
+              sequence="13" groups="stock.group_stock_user"/>
+
+</odoo>
